@@ -1,18 +1,18 @@
-import { BufferManager } from "./buffer-manager"
-import { DiskSpaceManager } from "./disk-space-manager"
+import { BufferManager } from './buffer-manager'
+import { DiskSpaceManager } from './disk-space-manager'
 
-export interface SystemDefsInitArgs {
+export interface ISystemDefsInitArgs {
   dbName: string
 }
 
 export class SystemDefs {
-  protected MINIBASE_DBNAME: string
-  protected MINIBASE_BM: BufferManager
-  protected MINIBASE_DB: DiskSpaceManager
+  protected readonly mDBName: string // MINIBASE_DBNAME
+  protected readonly mBufferManager: BufferManager // MINIBASE_BM
+  protected readonly mDiskSpaceManager: DiskSpaceManager // MINIBASE_DB
 
-  constructor(args: SystemDefsInitArgs) {
-    this.MINIBASE_DBNAME = args.dbName
-    this.MINIBASE_BM = new BufferManager()
-    this.MINIBASE_DB = new DiskSpaceManager()
+  constructor(args: ISystemDefsInitArgs) {
+    this.mDBName = args.dbName
+    this.mBufferManager = new BufferManager()
+    this.mDiskSpaceManager = new DiskSpaceManager()
   }
 }
