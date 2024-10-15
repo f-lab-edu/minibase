@@ -96,7 +96,36 @@ export class BTree {
     if (this.root === null) this.root = new Node(this.maxNodeSize, true)
 
     const leafNode = this.findLeafNode(searchKey)
+
+    // leafNode가 가득 차있지 않다면 리프노드에 insert
+    if (!leafNode.isFull) return this.insertIntoLeaf(leafNode, searchKey, item)
+
+    // leafNode가 가득 차있다면, split이 필요함.
+    const newLeafNode = new Node(this.maxNodeSize, true)
+
+    const temp = []
+    for (let i = 0; i <= leafNode.lastIndex; i++) {
+      temp.push([leafNode.children[i], leafNode.searchKeys[i]])
+    }
   }
 
-  private insertIntoLeaf(leafNode: Node, searchKey: string, item: any) {}
+  private insertIntoLeaf(leafNode: Node, searchKey: string, item: any) {
+    // searchKey는 L.K[i] 보다 크거나 같고 L.K[i+1]보다 작거나 같을 수 있음.
+    // 크면 i+1, 작거나 같으면 그 자리에 searchKey가 들어가고, 나머지 값은 뒤로 밀림.
+    for (let i = 0; i <= leafNode.lastIndex; i++) {
+      if (searchKey <= (leafNode.searchKeys[i] as string)) {
+        leafNode.searchKeys.splice(i, 0, searchKey).pop()
+        leafNode.children.splice(i, 0, item) // 꽉 찼을 떄 이 메서드 실행이 되나?
+        return
+      }
+    }
+  }
+
+  private insertIntoParent(
+    leafNode: Node,
+    middleKey: string,
+    newLeafNode: Node
+  ) {
+    //
+  }
 }
