@@ -1,15 +1,24 @@
+// 단말노드는 ceil( N-1 / 2 ) 최소 자식 수
+// 내부노드는 ceil( N / 2) 최소 자식 수
 class Node {
+  public parent: Node | null = null
   public searchKeys: Array<string | null>
   public children: Array<Node | null>
 
+  public isRootNode: boolean = false
   public isLeafNode: boolean = false
   public lastIndex: number = -1 // null이 아닌 값 기준 ex) [1,2,null] -> 1
 
-  constructor(maxSize: number, isLeafNode: boolean = false) {
+  constructor(
+    maxSize: number,
+    isLeafNode: boolean = false,
+    isRootNode: boolean = false
+  ) {
     this.searchKeys = Array.from({ length: maxSize - 1 }, () => null)
     // 리프 노드일 경우 마지막 노드는 오른쪽 리프 노드를 가르킴
     this.children = Array.from({ length: maxSize }, () => null)
     this.isLeafNode = isLeafNode
+    this.isRootNode = isRootNode
   }
 
   public get isEmpty() {
@@ -32,10 +41,10 @@ class Node {
 
 export class BTree {
   private root: Node | null = null
-  private maxNodeSize: number = 4
+  private degree: number = 4
 
-  constructor(iter: Iterable<any> | null = null, maxNodeSize: number = 4) {
-    this.maxNodeSize = maxNodeSize
+  constructor(iter: Iterable<any> | null = null, degree: number = 4) {
+    this.degree = degree
     if (iter) {
       for (const item of iter) {
         // this.insert(item)
@@ -54,21 +63,15 @@ export class BTree {
       const i = currentNode.findGteIndex(searchKey)
 
       if (i === -1) {
-        // internal node에는 자식 노드가 최소 1개 이상 있음.
+        // internal node에는 자식 노드가 최소 1개 이상 있음. ( floor(n/2)) )
         currentNode = currentNode.lastChild as Node
         continue
       }
 
       // searchKey = K[i]
       if (searchKey === currentNode.searchKeys[i]) {
-        // 검색 키가 같은 child를 찾았다면 C[i+1]가 isLeafNode가 될 때 까지
-        // C[0]를 참조하면 리프 노트를 가르킴
-        function digLeafNode(node: Node): Node {
-          if (node.isLeafNode) return node
-          return digLeafNode(node.children[0] as Node)
-        }
-
-        return digLeafNode(currentNode.children[i + 1] as Node)
+        currentNode = currentNode.children[i + 1] as Node
+        continue
       }
 
       // searchKey < K[i]
@@ -93,7 +96,7 @@ export class BTree {
   }
 
   public insert(searchKey: string, item: any) {
-    if (this.root === null) this.root = new Node(this.maxNodeSize, true)
+    if (this.root === null) this.root = new Node(this.degree, true)
 
     const leafNode = this.findLeafNode(searchKey)
 
@@ -101,12 +104,20 @@ export class BTree {
     if (!leafNode.isFull) return this.insertIntoLeaf(leafNode, searchKey, item)
 
     // leafNode가 가득 차있다면, split이 필요함.
-    const newLeafNode = new Node(this.maxNodeSize, true)
 
-    const temp = []
-    for (let i = 0; i <= leafNode.lastIndex; i++) {
-      temp.push([leafNode.children[i], leafNode.searchKeys[i]])
-    }
+    // NewNode 생성
+    // LeafNode의 사본 Temp 생성 (깊복)
+    // LeafNode에 새로운 값 삽입
+
+    // NewNode.items[lastIndex] = LeafNode.items[lastIndex]
+    // LeafNode.items[lastIndex] = Temp
+    // LeafNode에서 items을 초기화.lastItem 제외
+
+    // Temp.items[0~n/2-1]을 복사해 LeafNode.items로 넣는다
+    // Temp.items[n/2~n]을 복사해 NewLeaf.items로 넣는다
+
+    // middleKey = smallest(NewLeaf.items)
+    // insertIntoParent(LeafNode, middleKey, newLeaf)
   }
 
   private insertIntoLeaf(leafNode: Node, searchKey: string, item: any) {
@@ -114,18 +125,32 @@ export class BTree {
     // 크면 i+1, 작거나 같으면 그 자리에 searchKey가 들어가고, 나머지 값은 뒤로 밀림.
     for (let i = 0; i <= leafNode.lastIndex; i++) {
       if (searchKey <= (leafNode.searchKeys[i] as string)) {
-        leafNode.searchKeys.splice(i, 0, searchKey).pop()
-        leafNode.children.splice(i, 0, item) // 꽉 찼을 떄 이 메서드 실행이 되나?
+        leafNode.searchKeys = [
+          ...leafNode.searchKeys.slice(0, i),
+          searchKey,
+          ...leafNode.searchKeys.slice(i)
+        ]
+        // <=searchKey arr + item + >searchKey arr + nextNode
+        leafNode.children = [
+          ...leafNode.children.slice(0, i),
+          item,
+          ...leafNode.children.slice(i, leafNode.lastIndex - 1),
+          leafNode.children.at(-1)
+        ]
         return
       }
     }
   }
 
-  private insertIntoParent(
-    leafNode: Node,
-    middleKey: string,
-    newLeafNode: Node
-  ) {
+  private insertIntoParent(node: Node, middleKey: string, newNode: Node) {
+    // LeafNode가 root라면
+    //    newRootNode 생성 children = [LeafNode, middleKey, newLeafNode]
+    //    root = newRootNode
+    //    return
+    // ParentNode = parent(LeafNode)
+    // if ParentNode가 가득 차있지 않다면
+    //    (middleKey, newLeafNode) 쌍을 부모노드의 NodeLeaf key 뒤에 삽입
+    // else
     //
   }
 }
