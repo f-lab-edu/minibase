@@ -52,6 +52,23 @@ export class BTree {
     }
   }
 
+  public print() {
+    // 아래 같은 형식이 각 노드의 형태
+    // level 1
+    // level 2 일 때
+    // 마지막 레벨은 서로 연결
+    // ┌──────┐─────┐──────┐
+    // │ node │ key │ node │
+    // └──────┘─────┘──────┘
+    // ──────────┴──────────┬──────────────────────
+    //                      │
+    // ──┐        ┌──────┐─────┐──────┐        ┌───
+    // e │────────│ node │ key │ node │────────│ no
+    // ──┘        └──────┘─────┘──────┘        └───
+    // 위와 같은 패턴으로 tree 구조 출력하는 함수
+    // 정확한 구조를 위해 가장 하위 노드부터 쌓아올라가는 방식으로 출력
+  }
+
   // 무조건 리프 노드를 찾아야함.
   private findLeafNode(searchKey: string): Node {
     if (this.root === null) throw new Error('root is null')
@@ -130,6 +147,7 @@ export class BTree {
           searchKey,
           ...leafNode.searchKeys.slice(i)
         ]
+
         // <=searchKey arr + item + >searchKey arr + nextNode
         leafNode.children = [
           ...leafNode.children.slice(0, i),
@@ -149,8 +167,13 @@ export class BTree {
     //    return
     // ParentNode = parent(LeafNode)
     // if ParentNode가 가득 차있지 않다면
-    //    (middleKey, newLeafNode) 쌍을 부모노드의 NodeLeaf key 뒤에 삽입
-    // else
-    //
+    //    (middleKey, newLeafNode) 쌍을 node(N)의 부모 children에 적절한 위치에 삽입
+    // else (오른쪽 split)
+    // newNode 복사해서 Temp 생성
+    // (P.key, P.node) 쌍을 node(N)의 임시 부모(T)에 적절한 위치에 삽입
+    // P의 children 모두 지움, create P'2
+    // P에 T.[0~n/2-1] 삽입,
+    // middleKey2 = T.[] (smallest P2)
+    // P2에 T.[n/2~n]
   }
 }
