@@ -52,6 +52,10 @@ class Node {
     return this.children.at(this.lastIndex) as Node | null
   }
 
+  public findEqualIndex(searchKey: string) {
+    return (this.searchKeys as string[]).findIndex((key) => key === searchKey)
+  }
+
   public findFirstGteIndex(searchKey: string) {
     if (this.isEmpty) return -1
     return (this.searchKeys as string[]).findIndex((key) => key >= searchKey)
@@ -307,5 +311,30 @@ export class BTree {
 
     const parentMiddleKeyB = newParentB.searchKeys[0] as string
     this.insertIntoParent(parentA, parentMiddleKeyB, newParentB)
+  }
+
+  // 중복 없다는 가정
+  public delete(searchKey: string) {
+    const leafNode = this.findLeafNode(searchKey)
+    this.deleteEntry(leafNode, searchKey)
+  }
+
+  private deleteEntry(node: Node, searchKey: string) {
+    // delete K, P from Node
+    const targetIndex = node.findEqualIndex(searchKey)
+    if (targetIndex === -1) throw new Error('target not found')
+
+    node.searchKeys.splice(targetIndex, 1)
+    node.children.splice(targetIndex, 1)
+
+    // if(node.isRootNode && node.lastIndex === 0) {
+    //   //
+    // }
+    // node가 root && 자식이 하나면
+    // node를 삭제하고 자식을 root로 설정???
+
+    // 자식이 2개 이상이라면
+    // NodeB는 nodeA의 부모의 이전 또는 다음 형제 노드.
+    // keyB는 nodeA와 nodeB의 사이에 있는 키.
   }
 }
